@@ -1,0 +1,9 @@
+services:
+  lms_common.nominations:
+    class: Drupal\lms_common\Nominations
+  lms_common.schedules:
+    class: Drupal\lms_common\Schedules
+  lms_common.fp_entities:
+    class: Drupal\lms_common\FPEntities
+  lms_common.attendance:
+    class: Drupal\lms_common\Attendance

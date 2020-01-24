@@ -1,0 +1,355 @@
+<?php
+
+/**
+ * @author Amro Abouelenien
+ * @file
+ * Contains lms_common.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Field\WidgetBase;
+use Drupal\inline_entity_form\Plugin\Field\FieldWidget;
+use Drupal\paragraphs\Plugin\Field\FieldWidget\InlineParagraphsWidget;
+use Symfony\Component\HttpFoundation\Request;
+use Drupal\Core\Routing\AdminContext;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+/**
+ * Implements hook_help().
+ */
+function lms_common_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the lms common module.
+    case 'help.page.lms_common':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Handle Nomination registeration') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+
+/**
+ * Implements hook_entity_view()
+ */
+function lms_common_entity_view(array &$build, \Drupal\Core\Entity\EntityInterface $entity, \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display, $view_mode) {
+  
+  $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+  if ($user->hasRole('qdg_admin') || $user->hasRole('administrator') ) {
+  }
+  else if ($user->hasRole('entity_focal_point') ) {
+    $entity_id = $user->get('field_entity')->target_id;
+    //$employee_entity_id = \Drupal::service('lms_common.fp_entities')->get_employee_entity($employee_id);
+    $request = Request::createFromGlobals();
+    $current_path = $request->getPathInfo();
+    $path_args = explode('/', $current_path);
+    if($path_args[1] == 'ar') {
+       unset($path_args[1]);
+       $path_args = array_values($path_args); // reindex array
+    }
+    if ($path_args[1] == 'user' &&  is_numeric($path_args[2])) {
+      $employee_id = $path_args[2];
+      if (!\Drupal::service('lms_common.fp_entities')->does_employee_belong_to_this_entity($employee_id, $entity_id)) {
+        print "Access denied"; exit();
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_node_page().
+ */
+function lms_common_page_attachments(array &$attachments) {
+  // Unconditionally attach an asset to the page.
+  $attachments['#attached']['library'][] = 'lms_common/lms_common-library';
+  // load specific css for focal point
+  /*$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+  if ($user->hasRole('entity_focal_point')) {
+    //$attachments['#attached']['library'][] = 'lms_common/lms_common-fpoint-lib';
+  }*/
+
+  $node = \Drupal::request()->attributes->get('node');
+}
+function lms_common_preprocess_node_page(array &$variables) : void {
+  // Theme name: 'example', library name: 'example'. 
+  $variables['#attached']['library'][] = 'lms_common/lms_common-library';
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function lms_common_token_info() {
+  $type = [
+    'name' => t('LMS Tokens'),
+    'description' => t('Tokens related to the Lms Common entities'),
+  ];
+  $tokens['new_schedule_id'] = [
+    'name' => t('New Schedule Id'),
+    'description' => t('The Id of new schedule'),
+  ];
+  return [
+    'types' => ['lms_common' => $type],
+    'tokens' => ['lms_common' => $tokens],
+  ];
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function lms_common_tokens($type, $tokens, array $data, array $options, \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata) {
+  $replacements = [];
+  if ($type == 'lms_common') {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'new_schedule_id':
+          $course_nid = @$_GET["edit"]['field_course_name']['widget'][0]['target_id'];
+          //$replacements[$original] = \Drupal::service('nomination.accepted_nominations')->get_new_schedule_id($course_nid);
+          $replacements[$original] = \Drupal::service('lms_common.schedules')->get_new_schedule_id($course_nid);
+          $bubbleable_metadata->addCacheableDependency($replacements[$original]);
+          break;
+      }
+    }
+  }
+  return $replacements;
+}
+
+
+function lms_common_field_widget_form_alter(&$element, \Drupal\Core\Form\FormStateInterface $form_state, $context) {
+  // Add a css class to widget form elements for all fields of type mytype.
+  $field_definition = $context['items']->getFieldDefinition();
+   // print $field_definition->getName()."\n";
+  if ($field_definition->getType() == 'timestamp') {
+    // Be sure not to overwrite existing attributes.
+    $element['value']['#attributes']['class'][] = 'course_time_range';
+    //$element['value']['#date_date_element'] = 'd-m-Y';
+    $element['value']['#date_time_element'] = 'none';
+    $element['value']['#description'] = '';
+  }
+  else if ($field_definition->getType() == 'time_range'){
+    $element['#attributes']['class'][] = 'course_time_range';
+  }
+  else if ($field_definition->getType() == 'datetime') {
+    //$element['value']['#date_date_element'] = 'd-m-Y';
+    $element['value']['#date_time_element'] = 'none';
+  }
+}
+
+/**
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function lms_common_form_alter(&$form, Drupal\Core\Form\FormStateInterface $form_state, $form_id){
+    //print $form_id;
+    if ($form_id == 'user_register_form' || $form_id == 'user_form') {
+      $form['account']['name']['#title'] = t('QID');
+      // unset roles field and keep only employee role
+      $request = Request::createFromGlobals();
+      $current_path = $request->getPathInfo();
+      $path_args = explode('/', $current_path);
+      if($path_args[1] == 'ar') {
+      	unset($path_args[1]);
+	     $path_args = array_values($path_args); // reindex array
+      }
+      if ($path_args[1] == 'user' &&  $path_args[2]  == 'create' && $path_args[3] == 'employee') {
+	$form['#title'] = t("Create new Employee account");
+        $form ['account']['roles']['#options'] = Array (
+          'authenticated' => 'Authenticated user',
+          'employee'      => 'Employee'); 
+        $form ['account']['roles']['#default_value'] [] = 'employee';
+        $form ['account']['roles']['employee']['#disabled'] = 1;
+        
+        $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); 
+
+        if ($user->hasRole('entity_focal_point')) {
+          $form ['field_entity']['widget'][0]['target_id']['#default_value'] = \Drupal\node\Entity\Node::load($user->get('field_entity')->target_id);
+          $form ['field_year']['widget']['#default_value'] = date('Y');
+        }
+
+      }
+      else if ($path_args[1] == 'user' &&  is_numeric($path_args[2]) && $path_args[3] == 'edit') {
+        $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); 
+        $user_from_arg = \Drupal\user\Entity\User::load($path_args[2]);
+        if ($user->hasRole('administrator')) { }
+        else if ($user->hasRole('entity_focal_point') && $user_from_arg->hasRole('employee') && !$user_from_arg->hasRole('entity_focal_point') ) {
+          $form ['account']['roles']['#options'] = Array (
+            'authenticated' => 'Authenticated user',
+	    'employee'      =>  'Employee');
+	  // prevent user from setting the password
+	  unset( $form['account']['pass']);
+	  unset( $form['account']['status']);
+        }
+      }
+    }
+    elseif ($form_id == 'node_nomination_form') {
+      $form['#validate'][] = 'lms_common_node_nomination_form_validate';
+    }
+}
+
+function lms_common_node_nomination_form_validate($form, Drupal\Core\Form\FormStateInterface $form_state) {
+  $node = $form_state->getFormObject()->getEntity();
+  if ($node->getType() == 'nomination') {
+    $employee_id = @$form_state->getValue('field_employee_name')[0]['target_id'];
+    if (empty($employee_id))
+      $employee_id = $form_state->getValue('field_employee_name')['target_id'][0]['target_id'];
+    $schedule_id = $form_state->getValue('field_course_schedule_batch')[0]['target_id'];
+    if (!empty($employee_id) && !empty($schedule_id)) {
+      if (\Drupal::service('lms_common.nominations')->employee_nominated_before_in_schedule($employee_id, $schedule_id)) {
+        $form_state->setErrorByName('field_employee_name', 'This employee has been nominated before in the same course');  
+      }
+    }
+  }
+}
+
+function lms_common_views_data() {
+  // This example describes how to write hook_views_data() for a attendance_data table defined
+  $data = array();
+
+  // The outermost keys of $data are Views table names, which should usually
+  // be the same as the hook_schema() table names.
+  $data['attendance_data'] = array();
+
+  // The value corresponding to key 'table' gives properties of the table
+  // itself.
+  $data['attendance_data']['table'] = array();
+
+  // Within 'table', the value of 'group' (translated string) is used as a
+  // prefix in Views UI for this table's fields, filters, etc. When adding
+  // a field, filter, etc. you can also filter by the group.
+  $data['attendance_data']['table']['group'] = t('Attendance per day');
+
+  // Some tables are "base" tables, meaning that they can be the base tables
+  // for views. Non-base tables can only be brought in via relationships in
+  // views based on other tables. To define a table to be a base table, add
+  // key 'base' to the 'table' array:
+  $data['attendance_data']['table']['base'] = array(
+    // Identifier (primary) field in this table for Views.
+    'field' => 'pid',
+    // Label in the UI.
+    'title' => t('attendnace per day'),
+    // Longer description in the UI. Required.
+    'help' => t('attendance data table contains attendance status for employee per day and per course.'),
+    'weight' => -10,
+  );
+
+   // You can also do a more complex join, where in order to get to a certain
+  // base table defined in a hook_views_data() implementation, you will join
+  // to a different table that Views knows how to auto-join to the base table.
+  // For instance, if another module that your module depends on had
+  // defined a table 'foo' with an automatic join to 'node_field_table' (as
+  // shown above), you could join to 'node_field_table' via the 'foo' table.
+  // Here's how to do this, and the resulting SQL query would look something
+  // like this:
+  //   ... FROM example_table et ... JOIN foo foo
+  //   ON et.nid = foo.nid AND ('extra' clauses will be here) ...
+  //   JOIN node_field_data nfd ON (definition of the join from the foo
+  //   module goes here) ...
+  // although the table aliases will be different.
+  $data['attendance_data']['table']['join']['node_field_data'] = array(
+    // 'node_field_data' above is the base we're joining to in Views.
+    // 'left_table' is the table we're actually joining to, in order to get to
+    // 'node_field_data'. It has to be something that Views knows how to join
+    // to 'node_field_data'.
+    'left_table' => 'node__field_sessions_dates',
+    'left_field' => 'entity_id',
+    'field' => 'schedule_id',
+  );
+
+  // Other array elements at the top level of your table's array describe
+  // individual database table fields made available to Views. The array keys
+  // are the names (unique within the table) used by Views for the fields,
+  // usually equal to the database field names.
+  //
+  // Each field entry must have the following elements:
+  // - title: Translated label for the field in the UI.
+  // - help: Description of the field in the UI.
+  //
+  // Each field entry may also have one or more of the following elements,
+  // describing "handlers" (plugins) for the field:
+  // - relationship: Specifies a handler that allows this field to be used
+  //   to define a relationship to another table in Views.
+  // - field: Specifies a handler to make it available to Views as a field.
+  // - filter: Specifies a handler to make it available to Views as a filter.
+  // - sort: Specifies a handler to make it available to Views as a sort.
+  // - argument: Specifies a handler to make it available to Views as an
+  //   argument, or contextual filter as it is known in the UI.
+  // - area: Specifies a handler to make it available to Views to add content
+  //   to the header, footer, or as no result behavior.
+  //
+  // Note that when specifying handlers, you must give the handler plugin ID
+  // and you may also specify overrides for various settings that make up the
+  // plugin definition. See examples below; the Boolean example demonstrates
+  // setting overrides.
+  // Node ID field, exposed as relationship only, since it is a foreign key
+  // in this table.
+  $data['attendance_data']['session_date_id'] = array(
+    'title' => t('target id of schedule day for course schedule'),
+    'help' => t('Relate schedule date to employee attendance'),
+    // Define a relationship to the node_field_data table, so views whose
+    // base table is example_table can add a relationship to nodes. To make a
+    // relationship in the other direction, you can:
+    // - Use hook_views_data_alter() -- see the function body example on that
+    //   hook for details.
+    // - Use the implicit join method described above.
+    'relationship' => array(
+      // Views name of the table to join to for the relationship.
+      'base' => 'node__field_sessions_dates',
+      // Database field name in the other table to join on.
+      'base field' => 'field_sessions_dates_target_id',
+      // ID of relationship handler plugin to use.
+      'id' => 'standard',
+      // Default label for relationship in the UI.
+      'label' => t('Attendance record'),
+    ),
+  );
+
+  // Boolean field, exposed as a field, sort, and filter. The filter section
+  // illustrates overriding various settings.
+  $data['attendance_data']['attendance_status'] = array(
+    'title' => t('status either 0 as absent or 1 as present'),
+    'help' => t('return the status of employee in that day in that schedule'),
+    'field' => array(
+      // ID of field handler plugin to use.
+      'id' => 'boolean',
+    ),
+    'sort' => array(
+      // ID of sort handler plugin to use.
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      // ID of filter handler plugin to use.
+      'id' => 'boolean',
+      // Override the generic field title, so that the filter uses a different
+      // label in the UI.
+      'label' => t('Present'),
+      // Override the default BooleanOperator filter handler's 'type' setting,
+      // to display this as a "Yes/No" filter instead of a "True/False" filter.
+      'type' => 'yes-no',
+      // Override the default Boolean filter handler's 'use_equal' setting, to
+      // make the query use 'boolean_field = 1' instead of 'boolean_field <> 0'.
+      'use_equal' => TRUE,
+    ),
+  );
+
+  // Area example. Areas are not generally associated with actual data
+  // tables and fields. This example is from views_views_data(), which defines
+  // the "Global" table (not really a table, but a group of Fields, Filters,
+  // etc. that are grouped into section "Global" in the UI). Here's the
+  // definition of the generic "Text area":
+  $data['views']['area'] = array(
+    'title' => t('Text area'),
+    'help' => t('Provide markup text for the area.'),
+    'area' => array(
+      // ID of the area handler plugin to use.
+      'id' => 'text',
+    ),
+  );
+  return $data;
+}
+
+function computed_field_field_employee_email_compute($entity_type_manager, $entity, $fields, $delta) {
+  return $value = $fields['mail'][0]['value'];
+}
