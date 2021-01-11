@@ -1,8 +1,0 @@
-register in course:
-  title: 'register in course'
-  description: 'this permission is made for employee to register for a course'
-  restrict access: TRUE
-update attendance form:
-  title: 'update attendance form'
-  description: 'this permission is for qdgtp admin to update attendance form'
-  restrict access: TRUE

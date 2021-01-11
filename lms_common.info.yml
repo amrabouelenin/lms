@@ -1,5 +1,0 @@
-name: 'lms_common'
-type: module
-description: 'Handle LMS common functionalities'
-core: 8.x
-package: 'Custom'
