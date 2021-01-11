@@ -42,4 +42,15 @@ Feaures available:
  10. Hassle free management
  11. Notification (SMS/e-mail)
 
+Custom modules created:
+---------------------
+
+Custom module created can be found lms/modules/custom/lms_common
+
+Custom theme create:
+-------------------
+
+Custom theme created cna be found at lms/themes/qdg_barrio/
+
+
 
