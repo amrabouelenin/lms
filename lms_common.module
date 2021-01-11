@@ -40,7 +40,7 @@ function lms_common_entity_view(array &$build, \Drupal\Core\Entity\EntityInterfa
   $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
   if ($user->hasRole('qdg_admin') || $user->hasRole('administrator') ) {
   }
-  else if ($user->hasRole('entity_focal_point') ) {
+  else if ($user->hasRole('entity_focal_point') || $user->hasRole('entity_focal_point_assistant') ) {
     $entity_id = $user->get('field_entity')->target_id;
     //$employee_entity_id = \Drupal::service('lms_common.fp_entities')->get_employee_entity($employee_id);
     $request = Request::createFromGlobals();
@@ -164,7 +164,7 @@ function lms_common_form_alter(&$form, Drupal\Core\Form\FormStateInterface $form
         
         $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); 
 
-        if ($user->hasRole('entity_focal_point')) {
+        if ($user->hasRole('entity_focal_point') || $user->hasRole('entity_focal_point_assistant')) {
           $form ['field_entity']['widget'][0]['target_id']['#default_value'] = \Drupal\node\Entity\Node::load($user->get('field_entity')->target_id);
           $form ['field_year']['widget']['#default_value'] = date('Y');
         }
@@ -174,7 +174,7 @@ function lms_common_form_alter(&$form, Drupal\Core\Form\FormStateInterface $form
         $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); 
         $user_from_arg = \Drupal\user\Entity\User::load($path_args[2]);
         if ($user->hasRole('administrator')) { }
-        else if ($user->hasRole('entity_focal_point') && $user_from_arg->hasRole('employee') && !$user_from_arg->hasRole('entity_focal_point') ) {
+        else if (($user->hasRole('entity_focal_point') ||  $user->hasRole('entity_focal_point_assistant')) && $user_from_arg->hasRole('employee') && !$user_from_arg->hasRole('entity_focal_point') ) {
           $form ['account']['roles']['#options'] = Array (
             'authenticated' => 'Authenticated user',
 	    'employee'      =>  'Employee');
@@ -187,7 +187,11 @@ function lms_common_form_alter(&$form, Drupal\Core\Form\FormStateInterface $form
     elseif ($form_id == 'node_nomination_form') {
       $form['#validate'][] = 'lms_common_node_nomination_form_validate';
     }
+    elseif ($form_id == 'node_itp_form') {
+      $form['#validate'][] = 'lms_common_node_itp_form_validate';
+    }
 }
+
 
 function lms_common_node_nomination_form_validate($form, Drupal\Core\Form\FormStateInterface $form_state) {
   $node = $form_state->getFormObject()->getEntity();
@@ -201,8 +205,42 @@ function lms_common_node_nomination_form_validate($form, Drupal\Core\Form\FormSt
         $form_state->setErrorByName('field_employee_name', 'This employee has been nominated before in the same course');  
       }
     }
+
+    // check if the year of the course schedule is matched with the year of ITP plan of this employee
+    // get schedule date 
+    $schedule_node = \Drupal::entityTypeManager()->getStorage('node')->load($schedule_id);
+    $schedule_date = new DateTime($schedule_node->get('field_start_datetime')->getValue()[0]['value']);
+    $schedule_date = $schedule_date->format('Y');
+    if (!\Drupal::service('lms_common.nominations')->employee_has_itp_plan_already($employee_id, $schedule_date)) {
+      $option = [
+        'query' => ['edit[field_employee_name][widget][target_id]' => 'admin'],
+      ];
+//      edit[field_employee_name][widget][target_id]=1&edit[field_job_role_itp][widget][0][target_id]=34190&edit[field_department][widget][0][target_id]=34002
+      $url = Url::fromUri('internal:/node/add/itp', $option);
+      $form_state->setErrorByName('field_employee_name', 'This employee does not have an ITP for this year, please create one for him from the ITP menu' );
+    }
+
   }
 }
+
+
+function lms_common_node_itp_form_validate($form, Drupal\Core\Form\FormStateInterface $form_state) {
+  $node = $form_state->getFormObject()->getEntity();
+  if ($node->getType() == 'itp') {
+    $employee_id = @$form_state->getValue('field_employee_name')[0]['target_id'];
+    if (empty($employee_id))
+      $employee_id = $form_state->getValue('field_employee_name')['target_id'][0]['target_id'];
+      $itp_year = $form_state->getValue('field_itp_year')[0]['value'];
+    if (!empty($employee_id) && !empty($itp_year)) {
+      if (\Drupal::service('lms_common.nominations')->employee_has_itp_plan_already($employee_id, $itp_year)) {
+        $form_state->setErrorByName('field_employee_name', 'This employee has ITP Plan before for this year');  
+      }
+    }
+  }
+}
+
+
+
 
 function lms_common_views_data() {
   // This example describes how to write hook_views_data() for a attendance_data table defined
