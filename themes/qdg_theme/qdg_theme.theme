@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * Bootstrap sub-theme.
+ *
+ * Place your custom PHP code in this file.
+ */
+
+function qdg_theme_preprocess_block(&$variables) {
+
+}
+
+/**
+ * Impelentation of Hook_preprocess_page()
+ */
+function qdg_theme_preprocess_page(&$variables) {
+  
+  $route_match = \Drupal::routeMatch();
+  if ($route_match->getRouteName() == 'entity.node.canonical') {
+    //$node = \Drupal::request()->attributes->get('node');
+    $current_path = \Drupal::service('path.current')->getPath();
+    $path_args    = explode('/', $current_path);
+    if ($path_args[1] != 'node' && $path_args[1]) return;
+    if ($variables['node']->getType() == 'course') {
+      if (@$path_args[2] == 'add')  {
+        $node_state = 'add';
+      }
+      else if (@$path_args[3] == 'edit') {
+        $node_state = 'edit';
+      }
+      else {
+        $node_state = 'view';
+      }
+      $variables['node_state'] = $node_state;
+    }
+  }
+
+}
+
+function qdg_theme_theme_suggestions_page_alter(array &$suggestions, array $variables) {
+  // Add content type suggestions.
+  if ($node = \Drupal::request()->attributes->get('node')) {
+    array_splice($suggestions, 1, 0, 'page__node__' . $node->getType());
+  }
+}

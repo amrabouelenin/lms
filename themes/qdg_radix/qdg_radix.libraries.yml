@@ -1,0 +1,10 @@
+style:
+  version: VERSION
+  css:
+    theme:
+      assets/css/qdg_radix.style.css: {}
+  js:
+    assets/js/qdg_radix.script.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal

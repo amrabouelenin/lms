@@ -1,0 +1,152 @@
+
+/**
+ * @file
+ * Subtheme specific CSS.
+ */
+
+img.img-fluid.d-inline-block.align-top {
+  height: 73px;
+}
+
+
+.course_scheduling_process_registration_closed {
+  color: #212529;
+  background-color: #ffc107;
+}
+
+ .course_scheduling_process_started {
+  color: #fff;
+  background-color: #28a745;
+}
+.attendance_status_1, .enrollment_process_qdg_administration_approved,.course_scheduling_process_accepting_nominations {
+  color: #fff;
+  background-color: #28a745;
+}
+
+.course_scheduling_process_end_batch {
+  color: #fff;
+  background-color: #343a40;
+}
+
+.enrollment_process_pending_direct_manager_approval {
+  color: #212529;
+  background-color: #ffc107;
+}
+.navbar-dark .navbar-nav .active>.nav-link, .navbar-dark .navbar-nav .nav-link.active {
+  color:orange !important ;
+}
+
+/*added by amro*/
+a.nav-link.dropdown-toggle {
+  color: white !important;
+}
+
+.course_time_range legend {
+  display: none;
+}
+.course_time_range .js-form-item {
+  float: left;
+}
+.paragraphs-subform .field--name-field-session-date {
+  float: left;
+}
+
+
+.form-group {
+  margin-bottom: 0.5rem !important;
+}
+
+fieldset#edit-field-end-datetime-0 {
+  float: left;
+}
+
+fieldset#edit-field-start-datetime-0 {
+  float: left;
+}
+
+.paragraphs-subform .field--type-time-range {
+  float: left;
+}
+
+.field--type-datetime {
+  z-index: 10;
+}
+.field.field--name-field-session-date.field--type-timestamp.field--label-above {
+  float: left;
+  margin-right: 15px;
+  margin-left: 10px;
+}
+
+.field--name-field-sessions-dates .field__item {
+  padding: 5px;
+}
+.field--name-field-sessions-dates .field__label {
+  font-weight: bold;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: white;
+}
+.views-view-grid .col-1, .views-view-grid .col-2 {
+  flex: 0;
+  max-width: 100%;
+}
+
+.course_title  a {
+  background-color: white;
+  padding-right: 2px;
+  padding-left: 2px;
+  font-size: large;
+}
+
+.course_title {
+  position: absolute;
+  padding: 20px;
+}
+.views-view-grid .card {
+  margin-bottom: 40px !important;
+}
+
+form#views-exposed-form-schedules-for-entities-page-1 {
+  margin-bottom: 40px;
+}
+
+.verified_Yes, .verified_نعم, .Present, .حاضر {
+    color: #fff;
+    background-color: #28a745;
+}
+
+.verified_No, .verified_لا, .Absent, .غائب{
+    color: #fff;
+    background-color: #dc3545;
+}
+
+.table-responsive {
+  /* overflow-x: hidden;*/
+}
+.col {
+  flex-basis: unset;
+}
+
+.dropdown-item.active, .dropdown-item:active {
+  background-color: #cec1b3 !important;
+}
+
+.lang-dropdown-form img.language-icon {
+  padding:0px !important;
+}
+.js-form-item-lang-dropdown-select {
+
+  float: right;
+}
+
+.lang-dropdown-select-element {
+    width: auto !important;
+    padding: 0px;
+    height: auto;
+    margin-top: 2px;
+}
+.attendance_status_2, .Incomplete {
+  color: #212529;
+  background-color: #ffc107;
+}

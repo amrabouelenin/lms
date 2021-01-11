@@ -1,0 +1,15 @@
+{#
+/**
+ * @file
+ * Template for the branding block.
+ */
+#}
+{% extends '@radix/block/block.twig' %}
+
+{% block content %}
+  {% include '@radix/navbar/navbar-brand.twig' with {
+    text: site_name,
+    image: site_logo,
+    path: path('<front>'),
+  } %}
+{% endblock %}

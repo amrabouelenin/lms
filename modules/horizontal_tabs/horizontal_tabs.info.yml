@@ -1,0 +1,12 @@
+name: 'Horizontal tabs'
+type: module
+description: 'Defines a horizontal_tabs render element.'
+# core: 8.x
+dependencies:
+  - system (>=8.3.0)
+
+# Information added by Drupal.org packaging script on 2018-07-24
+version: '8.x-1.0-beta3'
+core: '8.x'
+project: 'horizontal_tabs'
+datestamp: 1532463788

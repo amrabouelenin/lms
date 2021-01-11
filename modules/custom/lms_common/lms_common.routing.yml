@@ -1,0 +1,22 @@
+lms_common.nomination_controller_save_nomination:
+  path: 'nomination/save_nomination'
+  defaults:
+    _controller: '\Drupal\lms_common\Controller\NominationController::save_nomination'
+    _title: 'save_nomination'
+  requirements:
+    _permission: 'register in course'
+lms_common.nomination_controller_save_nomination_ajax:
+  path: '/nomination/save_nomination_ajax/{uid}/{course_id}/{course_schedule_id}'
+  defaults:
+    _controller: '\Drupal\lms_common\Controller\NominationController::save_nomination_ajax'
+    _title: 'save_nomination_ajax'
+  requirements:
+    _permission: 'register in course'
+
+lms_common.attendance_form:
+  path: '/backend/attendanceform/{course_schedule_id}'
+  defaults:
+    _form: 'Drupal\lms_common\Form\AttendanceForm'
+    _title: 'Attednance Form Start'
+  requirements:
+    _permission: 'register in course'

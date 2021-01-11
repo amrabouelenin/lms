@@ -1,0 +1,13 @@
+name: Workflow State Config
+description: 'Workflow State Configuration Set Status and Default Revision For Node. On which state that node should get "Published" and make it as "Default Revision".'
+type: module
+# core: 8.x
+package: Workflow
+dependencies:
+  - workflow
+
+# Information added by Drupal.org packaging script on 2018-03-28
+version: '8.x-1.0-alpha2'
+core: '8.x'
+project: 'workflow_state_config'
+datestamp: 1522216086

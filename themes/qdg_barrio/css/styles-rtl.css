@@ -1,0 +1,107 @@
+/**
+ * @file
+ * Subtheme specific CSS.
+ */
+
+@font-face {
+  font-family: 'Droid Arabic Kufi';
+  src: url('DroidKufi-Regular.ttf')  format('truetype'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}  
+
+* {
+    font-family: 'Droid Arabic Kufi';
+}
+
+img.img-fluid.d-inline-block.align-top {
+    height: 73px;
+}
+
+
+.course_scheduling_process_registration_closed {
+    color: #212529;
+    background-color: #ffc107;
+}
+
+.course_scheduling_process_started {
+    color: #fff;
+    background-color: #28a745;
+}
+.course_scheduling_process_accepting_nominations {
+    color: #fff;
+    background-color: #343a40;
+}
+
+.course_scheduling_process_end_batch {
+    color: #fff;
+    background-color: #dc3545;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: white;
+}
+.site-footer .row {
+  margin: 0px !important;
+}
+
+#search-block-form .form-group {
+  margin-bottom:0px !important;
+}
+
+.navbar { 
+  padding:0px !important;
+}
+
+.home-page-content .field--name-title {
+  display: none;
+}
+
+.node--type-tasmu-coders .group-left {
+  border-right: solid 1px gainsboro;
+  padding-right: 50px;
+}
+
+.node--type-tasmu-coders .group-right .field--name-dynamic-block-fieldnode-tasmu-coders-login{
+  padding-right: 50px !important;
+}
+
+.list-group-item {
+  border: 0px;
+}
+
+.list-group {
+ padding-left:20px !important;
+
+}
+
+.site-footer {
+  padding: 0px;
+}
+
+.ar.is-active, .en.is-active {
+    color: #ec6500;
+}
+
+.language-link.is-active {
+    color: #ec6500;
+}
+
+.links {
+  color: white;
+  list-style-type: none;
+}
+
+.links a {
+  color: white;
+}
+
+*, p {
+    text-align: right !important;
+}
+
+.dropdown-menu {
+  left: auto !important;
+}
+
+.field.field--name-field-session-date.field--type-timestamp.field--label-above {
+  float: right;
+}

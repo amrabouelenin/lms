@@ -1,0 +1,76 @@
+<?php
+/**
+* Implements hook_install().
+*
+* Creates custom table for attendance
+*
+* @see hook_install()
+*
+* @ingroup lms_common
+*/
+function lms_common_install() {
+  $database = \Drupal::database();
+  // Add a default entry.
+  $fields = array(
+    'session_date_id' => '44',
+    'schedule_id' => '30995',
+    'uid' => 1833,
+    'attendance_status' => 1
+  );
+  $database->insert('attendance_data')
+    ->fields($fields)
+    ->execute();
+}
+
+/**
+* Implements hook_schema().
+*
+* Defines the database tables used by this module.
+*
+* @see hook_schema()
+*
+* @ingroup lms_common
+*/
+function lms_common_schema() {
+  $schema['attendance_data'] = array(
+    'description' => 'Stores attendance for scheudles for every employee.',
+    'fields' => array(
+      'pid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: attendance record id.',
+      ),
+      'session_date_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'session date id coming from sessions paragraph field.',
+      ),
+      'schedule_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "course schedule id",
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "Employee {users}.uid",
+      ),
+      'attendance_status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "attendance status either 0 (absent) or 1 (present)",
+      ),
+    ),
+    'primary key' => array('pid'),
+    'indexes' => array(
+      'schedule_id' => array('schedule_id'),
+      'session_date_id' => array('session_date_id'),
+      'uid' => array('uid'),
+    ),
+  );
+
+  return $schema;
+}
